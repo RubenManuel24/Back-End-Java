@@ -10,7 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.rudev.shop_catalogo.dto.CategoryDTO;
 import com.rudev.shop_catalogo.entities.Category;
 import com.rudev.shop_catalogo.repositories.CategoryRepository;
-import com.rudev.shop_catalogo.services.exceptions.EntityNotFoundException;
+import com.rudev.shop_catalogo.services.exceptions.ResourceNotFoundException;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class CategoryService {
@@ -31,11 +33,35 @@ public class CategoryService {
 		return new CategoryDTO(catgory1);
 	}
 
+	@Transactional
 	public CategoryDTO insert(CategoryDTO dto) {
 		Category entity = new Category();
 		entity.setName(dto.getName());
 		entity = categoryRepository.save(entity);
 		return new CategoryDTO(entity);
 	}
+	
+	@Transactional
+	public CategoryDTO update(Long id, CategoryDTO dto) {
+		try {
+		   Category category = categoryRepository.getReferenceById(id);
+		   category.setName(dto.getName());
+		   category = categoryRepository.save(category);
+		   return new CategoryDTO(category);
+		} catch(EntityNotFoundException e) {
+			throw new ResourceNotFoundException("Id not found");
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 }
