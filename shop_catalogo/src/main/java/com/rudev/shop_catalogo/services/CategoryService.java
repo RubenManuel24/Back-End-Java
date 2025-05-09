@@ -4,12 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.rudev.shop_catalogo.dto.CategoryDTO;
 import com.rudev.shop_catalogo.entities.Category;
 import com.rudev.shop_catalogo.repositories.CategoryRepository;
+import com.rudev.shop_catalogo.services.exceptions.DataIntegritytException;
 import com.rudev.shop_catalogo.services.exceptions.ResourceNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -50,6 +53,19 @@ public class CategoryService {
 		   return new CategoryDTO(category);
 		} catch(EntityNotFoundException e) {
 			throw new ResourceNotFoundException("Id not found");
+		}
+	}
+	
+	@Transactional(propagation = Propagation.SUPPORTS)
+	public void deleteById(Long id) {
+		if(!categoryRepository.existsById(id)) {
+			throw new ResourceNotFoundException("Resource not found");
+		}
+		try {
+			categoryRepository.deleteById(id);
+		}
+		catch(DataIntegrityViolationException e) {
+			throw new DataIntegritytException("Integrity Exception");
 		}
 	}
 	
