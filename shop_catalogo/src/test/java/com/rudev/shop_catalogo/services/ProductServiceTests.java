@@ -1,6 +1,7 @@
 package com.rudev.shop_catalogo.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,12 @@ public class ProductServiceTests {
 		 page = new PageImpl<>(List.of(product));
 		 
 		 Mockito.when(productRepository.findAll((Pageable)ArgumentMatchers.any())).thenReturn(page);
+		 
+		 Mockito.when(productRepository.save(ArgumentMatchers.any())).thenReturn(product);
+		 
+		 Mockito.when(productRepository.findById(existedId)).thenReturn(Optional.of(product));
+		 
+		 Mockito.when(productRepository.findById(notExistedId)).thenReturn(Optional.empty());
 		 
 		 Mockito.doNothing().when(productRepository).deleteById(existedId);
 		 Mockito.when(productRepository.existsById(existedId)).thenReturn(true);
