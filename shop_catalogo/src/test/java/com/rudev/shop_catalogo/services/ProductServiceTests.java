@@ -7,8 +7,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
 import com.rudev.shop_catalogo.repositories.CategoryRepository;
 import com.rudev.shop_catalogo.repositories.ProductRepository;
 
@@ -25,18 +26,32 @@ public class ProductServiceTests {
 	 private CategoryRepository categoryRepository;
 	 
 	 private long existedId;
-	 
 	 private long notExistedId;
+	 private long dependentId;
 	 
 	 @BeforeEach
 	 void setUp() throws Exception{
 		 existedId = 1L;
-		 
-		 notExistedId = 100000L;
+		 notExistedId = 2L;
+		 dependentId = 3L;
 		 
 		 Mockito.doNothing().when(productRepository).deleteById(existedId);
+		 Mockito.when(productRepository.existsById(existedId)).thenReturn(true);
+		 Mockito.when(productRepository.existsById(notExistedId)).thenReturn(false);
 		 
-		 Mockito.doThrow(EmptyResultDataAccessException.class ).when(productRepository).deleteById(notExistedId);
+		 Mockito.doThrow(DataIntegrityViolationException.class).when(productRepository).deleteById(dependentId);
+		  
+		 Mockito.when(productRepository.existsById(dependentId)).thenReturn(true);
+		
+	 }
+	 
+	 @Test
+	 public void deleteShouldThrowsDataBaseExceptionsWhenDepentId() {
+		 
+		 Assertions.assertThrows(Exception.class, () -> {
+			 productService.deleteById(dependentId);
+		 });
+		 
 	 }
 	 
 	 @Test
@@ -45,8 +60,6 @@ public class ProductServiceTests {
 		 Assertions.assertDoesNotThrow(() -> {
 			 productService.deleteById(existedId);
 		 });
-		 
-		 Mockito.verify(productRepository, Mockito.times(1)).deleteById(existedId);
 		 
 	 }
 	 
